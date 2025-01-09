@@ -1,12 +1,10 @@
-name: 'Terraform infrastructure Deployment to Azure Cloud'
+name: 'Terraform Infrastructure Deployment to Azure Cloud'
 
-
-# trigger
-#=========
+# Trigger
+# =========
 on:
   push:
     branches: [ "master" ]
-
 
 jobs:
   terraform:
@@ -15,37 +13,28 @@ jobs:
 
     environment: dev
 
-   
     defaults:
       run:
         shell: bash
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-    steps: 
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Terraform Plan
+        run: terraform plan -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -out=plan.tfplan
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Apply
+        run: terraform apply -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve -input=false plan.tfplan
 
-  
-    - name: Terraform Init
-      run: terraform init
-
-
- 
-    - name: Terraform Plan 
-      run: terraform plan -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-
-
-
-     - name: Terraform Apply
-       run:  terraform apply -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve -input=false
-
-
+    # Optional destroy step
     # - name: Terraform Destroy
-    #   run:  terraform destroy -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve -input=false
+    #   run: terraform destroy -var "client_id=${{ secrets.AZURE_CLIENT_ID }}" -var "client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" -var "tenant_id=${{ secrets.AZURE_TENANT_ID }}" -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" -auto-approve -input=false
