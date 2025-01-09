@@ -5,7 +5,7 @@ name: 'Terraform infrastructure Deployment to Azure Cloud'
 #=========
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 
 jobs:
